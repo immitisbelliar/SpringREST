@@ -13,4 +13,6 @@ public interface RoleService {
     Optional<Role> findById(Long id);
 
     Set<Role> findByRoleIn(List<String> role);
+
+    List<Role> getAllRoles();
 }

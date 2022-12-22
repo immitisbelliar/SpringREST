@@ -1,74 +1,79 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
-
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.model.User;
+
+import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
-    private final PasswordEncoder passwordEncoder;
-
-
     private final UserService userService;
 
+    private final RoleService roleService;
+
     @Autowired
-    public AdminController(PasswordEncoder passwordEncoder, UserService userService) {
-        this.passwordEncoder = passwordEncoder;
+    public AdminController(UserService userService, RoleService roleService) {
+
         this.userService = userService;
+
+        this.roleService = roleService;
     }
 
-    @GetMapping
-    public String getFormPrintAllUsers(Model model) {
-        model.addAttribute("people", userService.getAllUsers());
-        return "adminViews/admin";
-    }
 
-    @GetMapping("/{id}")
-    public String getFormWithUserData(@PathVariable("id") int id, Model model) {
-        model.addAttribute("person", userService.showUser(id));
-        return "adminViews/showAdm";
+    @GetMapping()
+    public String getAdminPageView(Principal principal, Model model) {
+        User user = userService.findByUsername(principal.getName());
+        model.addAttribute("admin", userService.showUser(user.getId()));
+        model.addAttribute("listOfUsers", userService.getAllUsers());
+        model.addAttribute("personalRole", user.returnTheSetOfRolesToString(userService.showUser(user.getId()).getRoles()));
+        model.addAttribute("roles", roleService.getAllRoles());
+        return "adminViews/adminPage";
     }
-
 
     @DeleteMapping("/{id}")
-    public String deleteUserInDataBase(@PathVariable("id") int id) {
+    public String deleteUser(@PathVariable("id") int id) {
         userService.deleteUser(id);
         return "redirect:/admin";
     }
 
-    @GetMapping("/{id}/edit")
-    public String getFormForUpdateUser(Model model, @PathVariable("id") Integer id) {
-        model.addAttribute("user", userService.showUser(id));
-        return "adminViews/edit";
-    }
-
-    @PatchMapping()
-    public String updateUserInDataBase(@ModelAttribute("user") @Valid User user,
-                                       @PathVariable("id") int id) {
-        userService.updateUser(id, user);
+    @PatchMapping(value = "update/{id}")
+    public String updateUser(@ModelAttribute("user") @Valid User user,
+                             @PathVariable("id") int id, @RequestParam(value = "my_roles[]") String[] roles) {
+        userService.updateUser(id, user, roles);
         return "redirect:/admin";
     }
 
-    @GetMapping("/users/new")
-    public String getFormForNewUser(Model model) {
+    @GetMapping("/new")
+    public String getViewForNewUser(Principal principal, Model model) {
+        User user = userService.findByUsername(principal.getName());
+        model.addAttribute("admin", userService.showUser(user.getId()));
         model.addAttribute("user", new User());
-        return "adminViews/new";
+        model.addAttribute("personalRole", user.returnTheSetOfRolesToString(userService.showUser(user.getId()).getRoles()));
+        model.addAttribute("roles", roleService.getAllRoles());
+        return "adminViews/newUser";
     }
 
-    @PostMapping("/users/newUsers")
-    public String addUserDataBase(@ModelAttribute("user") User user, @RequestParam(value = "my_roles[]") String[] roles) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    @PostMapping("/newUser")
+    public String addUser(@ModelAttribute("user") User user, @RequestParam(value = "my_roles[]") String[] roles) {
         userService.createUser(user, roles);
         return "redirect:/admin";
+    }
+
+    @GetMapping("/personalPage")
+    public String getViewsPersonalPageAdmin(Principal principal, Model model) {
+        User user = userService.findByUsername(principal.getName());
+        model.addAttribute("admin", userService.showUser(user.getId()));
+        model.addAttribute("role", user.returnTheSetOfRolesToString(userService.showUser(user.getId()).getRoles()));
+        return "adminViews/adminPersonalPage";
     }
 }

@@ -8,15 +8,12 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
-
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,32 +24,57 @@ public class User implements UserDetails {
     @Column(name = "username")
     private String username;
 
-    @Min(value = 1900, message = "Год рождения должен быть больше, чем 1900")
-    @Column(name = "year_of_birth")
-    private int yearOfBirth;
+    @Min(value = 0, message = "Возраст должен быть больше 0")
+    @Column(name = "age")
+    private int age;
 
     @Column(name = "password")
     private String password;
 
+    @Column(name = "first_name")
+    private String firstName;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @ManyToMany
     private Set<Role> roles;
 
     public User() {
     }
 
-    public User(String username, int yearOfBirth, String password, Set<Role> roles) {
+    public User(String username, String password, String firstName, String lastName, int age, Set<Role> role) {
         this.username = username;
-        this.yearOfBirth = yearOfBirth;
         this.password = password;
-        this.roles = roles;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.age = age;
+        this.roles = role;
     }
 
-    public User(int id, String username, int yearOfBirth, String password, Set<Role> roles) {
+    public User(Integer id, String username, String password, String firstName, String lastName, int age, Set<Role> roles) {
         this.id = id;
         this.username = username;
-        this.yearOfBirth = yearOfBirth;
         this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.age = age;
         this.roles = roles;
     }
 
@@ -97,8 +119,8 @@ public class User implements UserDetails {
         this.username = username;
     }
 
-    public int getYearOfBirth() {
-        return yearOfBirth;
+    public int getAge() {
+        return age;
     }
 
     public Set<Role> getRoles() {
@@ -109,8 +131,8 @@ public class User implements UserDetails {
         this.roles = roles;
     }
 
-    public void setYearOfBirth(int yearOfBirth) {
-        this.yearOfBirth = yearOfBirth;
+    public void setAge(int yearOfBirth) {
+        this.age = yearOfBirth;
     }
 
     public String getPassword() {
@@ -121,17 +143,31 @@ public class User implements UserDetails {
         this.password = password;
     }
 
+
+
+    public String returnTheSetOfRolesToString(Set<Role> roles) {
+        StringBuilder sb = new StringBuilder();
+        for (Role role : roles) {
+            if (role.getRole().contains("ROLE_ADMIN")) {
+                sb.append("ADMIN ");
+            } else if (role.getRole().contains("ROLE_USER")) {
+                sb.append("USER ");
+            }
+        }
+        return sb.toString();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return yearOfBirth == user.yearOfBirth && Objects.equals(username, user.username) && Objects.equals(roles, user.roles);
+        return age == user.age && Objects.equals(username, user.username) && Objects.equals(roles, user.roles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(username, yearOfBirth, password);
+        return Objects.hash(username, age, password);
     }
 
     @Override
@@ -139,8 +175,10 @@ public class User implements UserDetails {
         return "User{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", yearOfBirth=" + yearOfBirth +
+                ", age=" + age +
                 ", password='" + password + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
                 ", roles=" + roles +
                 '}';
     }

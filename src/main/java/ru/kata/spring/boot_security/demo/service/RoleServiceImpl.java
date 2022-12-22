@@ -9,8 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-@Transactional(readOnly = true)
+
 @Service
+@Transactional(readOnly = true)
 public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
@@ -19,15 +20,18 @@ public class RoleServiceImpl implements RoleService {
         this.roleRepository = roleRepository;
     }
 
-
     @Override
     public Optional<Role> findById(Long id) {
         return roleRepository.findById(id);
     }
 
-
     @Override
     public Set<Role> findByRoleIn(List<String> role) {
         return roleRepository.findByRoleIn(role);
+    }
+
+    @Override
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll();
     }
 }
