@@ -2,12 +2,10 @@ package ru.kata.spring.boot_security.demo.init;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-
-import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
+import ru.kata.spring.boot_security.demo.service.RoleService;
 
 import javax.annotation.PostConstruct;
 import java.util.Set;
@@ -18,22 +16,30 @@ public class DefaultUsers {
 
     private final UserRepository userRepository;
 
-    private final RoleRepository roleRepository;
-
     private final PasswordEncoder passwordEncoder;
 
-    public DefaultUsers(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    private final RoleService roleService;
+
+    public DefaultUsers(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleService roleService) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
     }
 
     @PostConstruct
     public void creationOfDefaultUsers() {
-        var role = new Role("ROLE_ADMIN");
-        var role2 = new Role("ROLE_USER");
-        roleRepository.saveAll(Set.of(role, role2));
-        createUser("admin@admin.com", passwordEncoder.encode("admin"), "Admin", "Admin", 99, Set.of(role, role2));
+        Role role1 = new Role();
+        role1.setRoleName("ROLE_ADMIN");
+        role1.setId(1);
+        roleService.addRole(role1);
+
+        Role role2 = new Role();
+        role2.setRoleName("ROLE_USER");
+        role2.setId(2);
+        roleService.addRole(role2);
+
+
+        createUser("admin@admin.com", passwordEncoder.encode("admin"), "Admin", "Admin", 99, Set.of(role1, role2));
         createUser("user@user.com", passwordEncoder.encode("user"), "User", "User", 88, Set.of(role2));
     }
 

@@ -5,10 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -21,17 +19,18 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Optional<Role> findById(Long id) {
-        return roleRepository.findById(id);
-    }
-
-    @Override
-    public Set<Role> findByRoleIn(List<String> role) {
-        return roleRepository.findByRoleIn(role);
+    public Role findRoleById(Integer id) {
+        return roleRepository.findById(id).get();
     }
 
     @Override
     public List<Role> getAllRoles() {
         return roleRepository.findAll();
+    }
+
+    @Transactional
+    @Override
+    public void addRole(Role role) {
+        roleRepository.save(role);
     }
 }
